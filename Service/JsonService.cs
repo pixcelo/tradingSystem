@@ -2,23 +2,24 @@ using System.Text.Json;
 
 namespace Zaku
 {
-    public class JsonService
+    public class JsonService : IDataService
     {
-        private readonly string _filePath;
+        public string path { get; set; }
 
-        public JsonService(string filePath)
+        public void SetPath(string path)
         {
-            this._filePath = filePath;
+            this.path = path;
         }
 
         /// <summary>
         /// Deserialize Json to .NET Object
         /// </summary>
         /// <returns></returns>
-        public CandleStickData? SerializeBasicModel()
+        public void GetTick()
         {
-            return JsonSerializer.Deserialize<CandleStickData>(this._filePath);
+            string? json = File.ReadAllText(this.path);
+            var candleSticks = JsonSerializer.Deserialize<CandleStickData>(json);
+            Console.WriteLine(candleSticks);
         }
-
     }
 }
