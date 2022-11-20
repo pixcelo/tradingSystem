@@ -16,16 +16,16 @@ namespace Zaku
         /// Deserialize Json to .NET Object
         /// </summary>
         /// <returns></returns>
-        public void GetTick()
+        public Candle[] GetTick()
         {
             if (this.candles != null)
             {
-                return;
+                return new Candle[0];
             }
 
             string? json = File.ReadAllText(this.Path);
             var candleStickData = JsonSerializer.Deserialize<CandleStickData>(json);
-            this.candles = ConvertService.ConvertCandleSticks(candleStickData.Candlesticks);
+            return ConvertService.ConvertCandleSticks(candleStickData.Candlesticks);
         }
     }
 }

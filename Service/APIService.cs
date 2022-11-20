@@ -7,10 +7,10 @@ namespace Zaku
         public string Path { get; set; }
         public Candle[] candles { get; set; }
 
-        public void GetTick()
+        public Candle[] GetTick()
         {
-            this.candles = new Candle[0];
             Console.WriteLine("This is the API Service");
+            return new Candle[0];
         }
     }
 }

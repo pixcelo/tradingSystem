@@ -4,6 +4,6 @@ namespace Zaku
     {
         string Path { get; set; }
 
-        void GetTick();
+        Candle[] GetTick();
     }
 }
