@@ -4,11 +4,12 @@ namespace Zaku
 {
     public class JsonService : IDataService
     {
-        public string path { get; set; }
+        public string Path { get; set; }
+        public Candle[] candles { get; set; }
 
         public void SetPath(string path)
         {
-            this.path = path;
+            this.Path = path;
         }
 
         /// <summary>
@@ -17,9 +18,14 @@ namespace Zaku
         /// <returns></returns>
         public void GetTick()
         {
-            string? json = File.ReadAllText(this.path);
-            var candleSticks = JsonSerializer.Deserialize<CandleStickData>(json);
-            Console.WriteLine(candleSticks);
+            if (this.candles != null)
+            {
+                return;
+            }
+
+            string? json = File.ReadAllText(this.Path);
+            var candleStickData = JsonSerializer.Deserialize<CandleStickData>(json);
+            this.candles = ConvertService.ConvertCandleSticks(candleStickData.Candlesticks);
         }
     }
 }

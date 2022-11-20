@@ -2,7 +2,7 @@ namespace Zaku
 {
     public interface IDataService
     {
-        string path { get; set; }
+        string Path { get; set; }
 
         void GetTick();
     }
