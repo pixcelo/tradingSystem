@@ -9,22 +9,25 @@ namespace Zaku
                 return new Candle[0];
             }
 
-            var arry = new Candle[candleStickData.Count];
+            var list = new List<Candle>();
 
             foreach (var candles in candleStickData)
             {
-                var c = new Candle();
-                c.Date = candles[0];
-                c.Open = candles[1];
-                c.High = candles[2];
-                c.Low = candles[3];
-                c.Close = candles[4];
-                c.Volume = candles[5];
+                for (int i = 0; i < candles.Count; i++)
+                {
+                    var c = new Candle();
+                    c.Date = candles[0];
+                    c.Open = candles[1];
+                    c.High = candles[2];
+                    c.Low = candles[3];
+                    c.Close = candles[4];
+                    c.Volume = candles[5];
 
-                arry.Append(c);
+                    list.Add(c);
+                }
             }
 
-            return arry;
+            return list.ToArray();
         }
     }
 }
