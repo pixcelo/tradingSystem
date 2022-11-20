@@ -7,7 +7,7 @@ namespace Zaku
     /// </summary>
     public class Candle
     {
-        public long Date { get; set; }
+        public decimal Date { get; set; }
         public decimal Open { get; set; }
         public decimal High { get; set; }
         public decimal Low { get; set; }

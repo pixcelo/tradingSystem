@@ -5,6 +5,6 @@ namespace Zaku
     public class CandleStickData
     {
         [JsonPropertyName("60")]
-        public List<List<double>>? Candlesticks { get; set; }
+        public List<List<decimal>>? Candlesticks { get; set; }
     }
 }
