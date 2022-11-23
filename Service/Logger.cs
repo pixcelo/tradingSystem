@@ -11,12 +11,12 @@ namespace Zaku
             this.path = path;
         }
 
-        public void WriteLog(string[] strArray)
+        public void WriteLog(List<string> logs)
         {
             var infoString = new StringBuilder();
-            foreach (var str in strArray)
+            foreach (string log in logs)
             {
-                infoString.Append(str);
+                infoString.Append(log);
                 infoString.Append(Environment.NewLine);
             }
 
