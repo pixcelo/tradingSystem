@@ -1,6 +1,6 @@
 namespace Zaku
 {
-    public enum Side
+    public enum OrderSide
     {
         Buy,
         Sell
