@@ -4,10 +4,19 @@
     {
         static void Main(string[] args)
         {
-            string filePath = "../jimu/candle.json";
-            var trade = new Trade(new JsonService());
-            trade.SetPath(filePath);
-            trade.GetTick();
+            try
+            {
+                var strategy = new MovingAverageStrategy();
+                //var trade = new Trade(strategy);
+                var trade = new BackTesting(strategy);
+                trade.OnTick();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message +
+                    Environment.NewLine +
+                    ex.StackTrace);
+            }
         }
     }
 }
