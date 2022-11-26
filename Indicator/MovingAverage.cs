@@ -48,9 +48,9 @@ namespace Zaku
         /// </summary>
         /// <param name="candles"></param>
         /// <param name="windowSize"></param>
-        /// <param name="isFirst"></param>
+        /// <param name="startIndex"></param>
         /// <returns></returns>
-        public static decimal GetSimpleMovingAverage(Candle[] candles, int windowSize, bool isFirst)
+        public static decimal GetSimpleMovingAverage(Candle[] candles, int windowSize, int startIndex)
         {
             var ave = 0M;
 
@@ -60,9 +60,11 @@ namespace Zaku
                 return ave;
             }
 
+            var data = candles.Skip(startIndex).Take(windowSize).ToList();
+
             for (int i = 0; i < windowSize; i++)
             {
-                ave = ComputeAverage(candles[i].Close, windowSize);
+                ave = ComputeAverage(data[i].Close, windowSize);
             }
 
             return Math.Round(ave, 2);
