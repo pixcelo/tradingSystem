@@ -22,34 +22,51 @@ namespace Zaku
         /// SimpleMovingAverage
         /// </summary>
         /// <param name="candles"></param>
-        /// <param name="period"></param>
+        /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static List<decimal> ComputeMovingAverage(Candle[] candles, int period)
+        public static List<decimal> GetSimpleMovingAverage(Candle[] candles, int windowSize)
         {
             var sma = new List<decimal>();
 
-            if (candles.Length < period)
+            if (candles.Length < windowSize)
             {
+                Console.WriteLine($"Number of data is less than required window-Size {windowSize}.");
                 return new List<decimal>();
             }
 
-            int counter = 1;
             foreach (var candle in candles)
             {
-                if (counter >= period)
-                {
-                    var result = ComputeAverage(candle.Close, period);
-                    sma.Add(result);
-                }
-                else
-                {
-                    sma.Add(0);
-                }
-
-                counter++;
+                var ave = ComputeAverage(candle.Close, windowSize);
+                sma.Add(ave);
             }
 
-            return sma;
+            return sma.Skip(windowSize - 1).ToList();
         }
+
+        /// <summary>
+        /// SimpleMovingAverage
+        /// </summary>
+        /// <param name="candles"></param>
+        /// <param name="windowSize"></param>
+        /// <param name="isFirst"></param>
+        /// <returns></returns>
+        public static decimal GetSimpleMovingAverage(Candle[] candles, int windowSize, bool isFirst)
+        {
+            var ave = 0M;
+
+            if (candles.Length < windowSize)
+            {
+                Console.WriteLine($"Number of data is less than required window-Size {windowSize}.");
+                return ave;
+            }
+
+            for (int i = 0; i < windowSize; i++)
+            {
+                ave = ComputeAverage(candles[i].Close, windowSize);
+            }
+
+            return Math.Round(ave, 2);
+        }
+
     }
 }
