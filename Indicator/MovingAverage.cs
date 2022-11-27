@@ -62,7 +62,7 @@ namespace Zaku
 
             var data = candles.Skip(startIndex).Take(windowSize).ToList();
 
-            for (int i = 0; i < windowSize; i++)
+            for (int i = 0; i < data.Count; i++)
             {
                 ave = ComputeAverage(data[i].Close, windowSize);
             }
