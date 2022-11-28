@@ -2,95 +2,138 @@ namespace Zaku
 {
     public class BackTesting
     {
+        private Logger logger { get; set; }
         private IDataService dataService { get; set; }
         private IStrategy strategy { get; set; }
+        private List<Position> positions { get; set; }
+        private ReportService reportService { get; set;}
 
         /// <summary>
         /// BackTest Settings
         /// </summary>
         private readonly int lots = 1;
-        private readonly int positionLimit = 0;
+        private readonly int? positionLimit = null;
         private readonly int Slippage = 0;
-        private readonly decimal commission = 0.1M;
+        private readonly decimal feeRate = 0.1M;
 
         public BackTesting(IStrategy strategy)
         {
+            this.logger = new Logger("logs/backTesting/");
             this.dataService = new JsonService();
-            this.strategy = strategy;
             this.dataService.Path = "../jimu/candle.json";
+            this.strategy = strategy;
+            this.positions = new List<Position>();
+            this.reportService = new ReportService();
         }
 
-        public Candle[] GetTick()
+        private Candle[] GetTick()
         {
             return this.dataService.GetTick();
         }
 
-        // 擬似トレード
-        public Position Order(Order order)
+        private void CheckPositions(Candle candle)
         {
-            // TODO: 計算をする処理
-            Console.WriteLine("result: ");
-            return new Position();
+            if (positions.Count > 0)
+            {
+                foreach (var p in positions)
+                {
+                    // Judge close-position-condition
+                    Condition close = strategy.JudgeClose(candle, p);
+
+                    if (close.IsOk)
+                    {
+                        ClosePosition(close);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Check number of positions
+        /// </summary>
+        /// <returns></returns>
+        private bool WithinPositionLimit()
+        {
+            if (positionLimit == null)
+            {
+                return true;
+            }
+
+            return positionLimit >= positions.Count;
+        }
+
+        private void ClosePosition(Condition condition)
+        {
+            var position = positions.Where(x => x.OrderId == condition.OrderId).FirstOrDefault();
+
+            if (position == null)
+            {
+                return;
+            }
+
+            //ここで計算する 手数料が取られる
+            var tradingFee = condition.ClosePrice * feeRate;
+            // 手数料を加算する
+            reportService.AddTradingFee(tradingFee);
+            // 総純利益 -　totalFee
+
+            positions.RemoveAll(x => x.OrderId == position.OrderId);
         }
 
         public void OnTick()
         {
-            var logger = new Logger("logs/");
-            var log = new List<string>();
-
-            var positions = new List<Position>();
-
             try
             {
                 Candle[] candles = GetTick();
 
-                foreach (var candle in candles)
+                for (int i = 0; i < candles.Length; i++)
                 {
-                    if (positions.Count > 0)
-                    {
-                        // 決済条件を判定
-                        var conditions = strategy.JudgePositions(positions);
+                    CheckPositions(candles[i]);
 
-                        foreach (var cd in conditions)
-                        {
-                            if (cd.IsOk)
-                            {
-                                // TODO: 条件を満たしている場合、決済オーダーを入れる
-                                // ClosePosition(cd.OrderId);
-                            }
-                        }
-                    }
-
-                    var condition = strategy.Judge(candle);
-                    if (!condition.IsOk)
+                    if (!WithinPositionLimit())
                     {
                         continue;
                     }
 
-                    var order = new Order()
+                    // Judge entry-order-Condition
+                    Condition entry = strategy.JudgeEntry(candles, i);
+
+                    if (!entry.IsOk)
                     {
+                        continue;
+                    }
+
+                    var randomId = new System.Random()
+                        .Next(0,10000).ToString();
+
+                    var order = new Position()
+                    {
+                        OrderId = randomId,
                         Symbol = "BTCUSDT",
-                        OrderSide = condition.Side,
-                        EntryPrice = candle.Close,
+                        Type = OrderType.Market,
+                        Side = entry.Side,
+                        EntryPrice = candles[i].Close,
                         SettlementPrice = null,
                         Lots = lots,
                         TakeProfit = null,
                         StopLoss = null
                     };
 
-                    var position = Order(order);
-                    positions.Add(position);
+                    var tradingFee = order.EntryPrice * feeRate;
+                    // 手数料を加算する
+
+                    positions.Add(order);
                 }
             }
             catch (Exception ex)
             {
-                log.Add(ex.Message +
+                logger.logs.Add(ex.Message +
                     Environment.NewLine +
                     ex.StackTrace);
             }
             finally
             {
-                logger.WriteLog(log);
+                logger.WriteLog();
             }
         }
 
