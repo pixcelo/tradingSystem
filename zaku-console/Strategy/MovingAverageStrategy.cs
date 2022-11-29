@@ -30,10 +30,18 @@ namespace Zaku
             return condition;
         }
 
-        public Condition JudgeClose(Position position)
+        public Condition JudgeClose(Candle candle, Position position)
         {
-            return new Condition();
-        }
+            var condition = new Condition();
 
+            // 目標価額に達したらクローズ
+            if (candle.Close >= (position.EntryPrice * 1.05M))
+            {
+                condition.IsOk = true;
+                condition.ClosePrice = candle.Close;
+            }
+
+            return condition;
+        }
     }
 }

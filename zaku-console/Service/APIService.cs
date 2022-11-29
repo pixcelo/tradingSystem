@@ -12,5 +12,10 @@ namespace Zaku
             Console.WriteLine("This is the API Service");
             return new Candle[0];
         }
+
+        public List<Position> GetPositions()
+        {
+            return new List<Position>();
+        }
     }
 }

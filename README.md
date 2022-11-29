@@ -1,5 +1,14 @@
-# zaku-console
+# tradingSystem
+stock and crypto currency trading system
+
+## zaku-console
 C# Console App
 
-## version
-.NÉT6.0
+## zaku-console-test
+xUnit Test project
+```
+dotnet test
+```
+
+## sowtware version
+.NET6.0
