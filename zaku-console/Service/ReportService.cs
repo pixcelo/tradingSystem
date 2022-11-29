@@ -15,14 +15,35 @@ namespace Zaku
             this.TotalNumbreOfTrading += num;
         }
 
-        public void AddTradingFee(decimal tradingFee)
+        /// <summary>
+        /// 取引手数料は売買時に発生
+        /// </summary>
+        /// <param name="orderPrice"></param>
+        /// <param name="feeRate"></param>
+        public void AddTradingFee(decimal orderPrice, decimal feeRate)
         {
+            decimal tradingFee = orderPrice * feeRate;
             this.TotalTradingFees += tradingFee;
+        }
+
+        public void ComputeProfit(decimal entryPrice, decimal closePrice, OrderSide side)
+        {
+            decimal profit = side switch
+            {
+                OrderSide.Buy => closePrice - entryPrice,
+                OrderSide.Sell => entryPrice - closePrice,
+                _ => throw new InvalidOperationException()
+            };
         }
 
         public void ComputeWinRate()
         {
             // 勝率
+        }
+
+        public void ComputeTotalProfit()
+        {
+            // 利益 - 取引手数料
         }
     }
 }

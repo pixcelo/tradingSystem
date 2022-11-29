@@ -72,6 +72,7 @@ namespace Zaku
             }
 
             reportService.AddTradingFee(condition.ClosePrice, feeRate);
+            reportService.ComputeProfit(condition.EntryPrice, condition.ClosePrice, condition.Side);
             positions.RemoveAll(x => x.OrderId == position.OrderId);
         }
 

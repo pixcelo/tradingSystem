@@ -38,6 +38,7 @@ namespace Zaku
             if (candle.Close >= (position.EntryPrice * 1.05M))
             {
                 condition.IsOk = true;
+                condition.EntryPrice = position.EntryPrice;
                 condition.ClosePrice = candle.Close;
             }
 
