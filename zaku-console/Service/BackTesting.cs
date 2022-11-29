@@ -71,12 +71,7 @@ namespace Zaku
                 return;
             }
 
-            //ここで計算する 手数料が取られる
-            var tradingFee = condition.ClosePrice * feeRate;
-            // 手数料を加算する
-            reportService.AddTradingFee(tradingFee);
-            // 総純利益 -　totalFee
-
+            reportService.AddTradingFee(condition.ClosePrice, feeRate);
             positions.RemoveAll(x => x.OrderId == position.OrderId);
         }
 
@@ -119,9 +114,7 @@ namespace Zaku
                         StopLoss = null
                     };
 
-                    var tradingFee = order.EntryPrice * feeRate;
-                    // 手数料を加算する
-
+                    reportService.AddTradingFee(order.EntryPrice, feeRate);
                     positions.Add(order);
                 }
             }
