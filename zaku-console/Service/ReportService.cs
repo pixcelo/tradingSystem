@@ -5,15 +5,10 @@ namespace Zaku
         private decimal TotalTradingFees { get; set; }
         private decimal TotalProfit { get; set; }
         private decimal TotalLoss { get; set; }
-        private int TotalNumbreOfTrading { get; set; }
-        private decimal WinRate { get; set; }
-        private decimal LoseRate { get; set; }
+        private int NumberOfTrading { get; set; }
+        private int NumberOfWins {get; set;}
+        private int NumberOfLosses {get; set;}
         private decimal MaxDrawdown { get; set; }
-
-        public void AddTradingNumber(int num)
-        {
-            this.TotalNumbreOfTrading += num;
-        }
 
         /// <summary>
         /// 取引手数料は売買時に発生
@@ -26,6 +21,12 @@ namespace Zaku
             this.TotalTradingFees += tradingFee;
         }
 
+        /// <summary>
+        /// 売買時の利益を計算
+        /// </summary>
+        /// <param name="entryPrice"></param>
+        /// <param name="closePrice"></param>
+        /// <param name="side"></param>
         public void ComputeProfit(decimal entryPrice, decimal closePrice, OrderSide side)
         {
             decimal profit = side switch
@@ -34,16 +35,44 @@ namespace Zaku
                 OrderSide.Sell => entryPrice - closePrice,
                 _ => throw new InvalidOperationException()
             };
+
+            UpdateStatus(profit);
         }
 
-        public void ComputeWinRate()
+        /// <summary>
+        /// ステータスを更新
+        /// </summary>
+        /// <param name="profit"></param>
+        private void UpdateStatus(decimal profit)
         {
-            // 勝率
+            this.TotalProfit += profit;
+            this.NumberOfTrading++;
+
+            if (profit > 0)
+            {
+                this.NumberOfWins++;
+            }
+            else
+            {
+                this.NumberOfLosses++;
+            }
         }
 
-        public void ComputeTotalProfit()
+        /// <summary>
+        /// 勝敗率を計算
+        /// </summary>
+        /// <param name="num"></param>
+        /// <param name="numberOfTrading"></param>
+        /// <returns></returns>
+        private decimal ComputeRate(int num, int numberOfTrading)
         {
-            // 利益 - 取引手数料
+            decimal rate = (decimal)num / (decimal)numberOfTrading;
+            return Math.Round(rate, 2);
+        }
+
+        private decimal ComputeTotalProfit(decimal profit, decimal fee)
+        {
+            return profit - fee;
         }
     }
 }
