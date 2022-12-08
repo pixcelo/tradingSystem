@@ -2,6 +2,10 @@ namespace Zaku
 {
     public class MovingAverageStrategy : IStrategy
     {
+        public readonly string StategyName = "MovingAverageStrategy";
+
+        public string GetStrategyName() => this.StategyName;
+
         public Condition JudgeEntry(Candle[] candles, int startIndex)
         {
             var condition = new Condition();
