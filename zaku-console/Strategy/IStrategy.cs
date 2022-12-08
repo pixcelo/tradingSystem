@@ -3,7 +3,7 @@ namespace Zaku
     public interface IStrategy
     {
         string GetStrategyName();
-        Condition JudgeEntry(Candle[] candles, int startIndex);
-        Condition JudgeClose(Candle cande, Position position);
+        Position JudgeEntryCondition(Candle[] candles, int startIndex);
+        Position JudgeCloseCondition(Candle cande, Position position);
     }
 }

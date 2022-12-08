@@ -6,13 +6,19 @@ namespace Zaku
 
         public string GetStrategyName() => this.StategyName;
 
-        public Condition JudgeEntry(Candle[] candles, int startIndex)
+        /// <summary>
+        /// エントリー条件を判定
+        /// </summary>
+        /// <param name="candles"></param>
+        /// <param name="startIndex"></param>
+        /// <returns></returns>
+        public Position JudgeEntryCondition(Candle[] candles, int startIndex)
         {
-            var condition = new Condition();
+            var position = new Position();
 
             if (startIndex == 0)
             {
-                return condition;
+                return position;
             }
 
             int windowSizeShort = 20;
@@ -27,26 +33,29 @@ namespace Zaku
             // 短期線が長期線を上抜け
             if (prevShort < prevLong && maShort > maLong)
             {
-                condition.IsOk = true;
-                condition.Side = OrderSide.Buy;
+                position.EntryCondition = true;
+                position.Side = OrderSide.Buy;
             }
 
-            return condition;
+            return position;
         }
 
-        public Condition JudgeClose(Candle candle, Position position)
+        /// <summary>
+        /// 決済条件を判定
+        /// </summary>
+        /// <param name="candle"></param>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public Position JudgeCloseCondition(Candle candle, Position position)
         {
-            var condition = new Condition();
-
             // 目標価額に達したらクローズ
             if (candle.Close >= (position.EntryPrice * 1.05M))
             {
-                condition.IsOk = true;
-                condition.EntryPrice = position.EntryPrice;
-                condition.ClosePrice = candle.Close;
+                position.CloseCondition = true;
+                position.ClosePrice = candle.Close;
             }
 
-            return condition;
+            return position;
         }
     }
 }
