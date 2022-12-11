@@ -19,6 +19,12 @@ namespace Zaku
         /// <param name="positions"></param>
         public void Totalling(List<Position> positions)
         {
+            if (positions.Count == 0)
+            {
+                Console.WriteLine("There is not settled position.");
+                return;
+            }
+
             // サマリーを計算
             foreach (var item in positions)
             {
