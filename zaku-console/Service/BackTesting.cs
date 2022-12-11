@@ -31,8 +31,13 @@ namespace Zaku
             return this.dataService.GetTick();
         }
 
+        /// <summary>
+        /// ローソク足とポジションから決済条件をチェック
+        /// </summary>
+        /// <param name="candle"></param>
         private void CheckPositions(Candle candle)
         {
+            // 未決済ポジション
             var unsettledPositions = positions
                                      .Where(x => !x.CloseCondition)
                                      .ToList();
@@ -55,15 +60,6 @@ namespace Zaku
             return positionLimit == null
                    ? true
                    : positionLimit >= positions.Count;
-        }
-
-        /// <summary>
-        /// ポジションをクローズ
-        /// </summary>
-        /// <param name="OrderId"></param>
-        private void ClosePosition(string? OrderId)
-        {
-
         }
 
         public void OnTick()
@@ -97,8 +93,7 @@ namespace Zaku
                     positions.Add(entry);
                 }
 
-                reportService.Totalling(this.positions);
-                Report backTestReport = reportService.GetReport();
+                Report backTestReport = reportService.GetReport(this.positions);
                 string testFileName = Path.GetFileNameWithoutExtension(this.dataService.Path);
                 var es = new ExcelService(this.strategy.GetStrategyName(), testFileName);
                 es.OutputAsExcelFile(backTestReport);

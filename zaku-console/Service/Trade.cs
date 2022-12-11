@@ -84,34 +84,28 @@ namespace Zaku
 
                     CheckPositions();
 
-                    if (!WithinPositionLimit())
-                    {
-                        continue;
-                    }
+                    if (!WithinPositionLimit()) continue;
 
                     // Judge entry-order-Condition
-                    Condition entry = strategy.JudgeEntry(candles, 1);
+                    var entry = strategy.JudgeEntryCondition(candles, 1);
 
-                    if (!entry.IsOk)
+                    if (!entry.EntryCondition)
                     {
                         Thread.Sleep(waitingTime_MilliSeconds);
                         continue;
                     }
 
-                    var order = new Position()
-                    {
-                        Symbol = "BTCUSDT",
-                        Type = OrderType.Market,
-                        Side = entry.Side,
-                        EntryPrice = candle.Close,
-                        SettlementPrice = null,
-                        Lots = lots,
-                        TakeProfit = null,
-                        StopLoss = null
-                    };
+                    entry.Symbol = "BTCUSDT";
+                    entry.Type = OrderType.Market;
+                    entry.Side = entry.Side;
+                    entry.EntryPrice = candle.Close;
+                    entry.ClosePrice = null;
+                    entry.Lots = lots;
+                    entry.TakeProfit = null;
+                    entry.StopLoss = null;
 
                     // 注文が通ればポジションを追加する
-                    var newOrder = Order(order);
+                    var newOrder = Order(entry);
 
                     if (newOrder != null)
                     {
