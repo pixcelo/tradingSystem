@@ -33,14 +33,17 @@ namespace Zaku
 
         private void CheckPositions(Candle candle)
         {
-            foreach (var p in positions)
+            var unsettledPositions = positions
+                                     .Where(x => !x.CloseCondition)
+                                     .ToList();
+
+            foreach (var p in unsettledPositions)
             {
-                Position position = strategy.JudgeCloseCondition(candle, p);
-                position.CloseCondition = true;
-                if (!position.CloseCondition) continue;
-                ClosePosition(position.OrderId);
+                if (strategy.JudgeCloseCondition(candle, p))
+                {
+                    p.CloseCondition = true;
+                }
             }
-            positions.RemoveAll(x => x.CloseCondition);
         }
 
         /// <summary>
@@ -60,13 +63,7 @@ namespace Zaku
         /// <param name="OrderId"></param>
         private void ClosePosition(string? OrderId)
         {
-            var position = positions
-                           .Where(x => x.OrderId == OrderId)
-                           .FirstOrDefault();
 
-            if (position == null) return;
-            position.CloseCondition = true;
-            reportService.AddClosePosition(position);
         }
 
         public void OnTick()
@@ -100,6 +97,7 @@ namespace Zaku
                     positions.Add(entry);
                 }
 
+                reportService.Totalling(this.positions);
                 Report backTestReport = reportService.GetReport();
                 string testFileName = Path.GetFileNameWithoutExtension(this.dataService.Path);
                 var es = new ExcelService(this.strategy.GetStrategyName(), testFileName);
