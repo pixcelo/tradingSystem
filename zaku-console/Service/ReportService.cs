@@ -1,24 +1,49 @@
 namespace Zaku
 {
+    /// <summary>
+    /// 取引結果をレポートに記録するクラス
+    /// </summary>
     public class ReportService
     {
-        private decimal TotalTradingFees { get; set; }
-        private decimal TotalProfit { get; set; }
-        private decimal TotalLoss { get; set; }
-        private int NumberOfTrading { get; set; }
-        private int NumberOfWins {get; set;}
-        private int NumberOfLosses {get; set;}
-        private decimal MaxDrawdown { get; set; }
+        private Report BackTestReport { get; set; }
+        private decimal fee { get; set; } = 0.1M;
+
+        public ReportService()
+        {
+            this.BackTestReport = new Report();
+        }
 
         /// <summary>
-        /// 取引手数料は売買時に発生
+        /// ポジションからバックテストの結果を集計
         /// </summary>
-        /// <param name="orderPrice"></param>
-        /// <param name="feeRate"></param>
-        public void AddTradingFee(decimal orderPrice, decimal feeRate)
+        /// <param name="positions"></param>
+        public void Totalling(List<Position> positions)
         {
-            decimal tradingFee = orderPrice * feeRate;
-            this.TotalTradingFees += tradingFee;
+            // サマリーを計算
+            foreach (var item in positions)
+            {
+                item.Profit = ComputeProfit(item.EntryPrice, item.ClosePrice, item.Side);
+            }
+
+            this.BackTestReport.Profit = positions.Sum(s => s.Profit);
+            this.BackTestReport.Fee = positions.Sum(s => ((decimal)s.EntryPrice * s.Lots) * this.fee) +
+                                      positions.Sum(s => ((decimal)s.ClosePrice * s.Lots) * this.fee);
+            this.BackTestReport.MaxDrawdown = positions.Where(s => s.Profit < 0)
+                                                       .Min(m => m.Profit);
+            this.BackTestReport.NumberOfTrading = positions.Count();
+            this.BackTestReport.RateWin = ComputeRate(positions.Where(x => x.Profit > 0).Count(), this.BackTestReport.NumberOfTrading);
+            this.BackTestReport.RateLose = ComputeRate(positions.Where(x => x.Profit < 0).Count(), this.BackTestReport.NumberOfTrading);
+        }
+
+        public Report GetReport(List<Position> positions)
+        {
+            // 決済済ポジション
+            var settledPositionsd = positions
+                                    .Where(x => x.CloseCondition)
+                                    .ToList();
+
+            Totalling(settledPositionsd);
+            return this.BackTestReport;
         }
 
         /// <summary>
@@ -27,35 +52,16 @@ namespace Zaku
         /// <param name="entryPrice"></param>
         /// <param name="closePrice"></param>
         /// <param name="side"></param>
-        public void ComputeProfit(decimal entryPrice, decimal closePrice, OrderSide side)
+        public decimal ComputeProfit(decimal entryPrice, decimal? closePrice, OrderSide side)
         {
             decimal profit = side switch
             {
-                OrderSide.Buy => closePrice - entryPrice,
-                OrderSide.Sell => entryPrice - closePrice,
+                OrderSide.Buy => (decimal)closePrice - entryPrice,
+                OrderSide.Sell => entryPrice - (decimal)closePrice,
                 _ => throw new InvalidOperationException()
             };
 
-            UpdateStatus(profit);
-        }
-
-        /// <summary>
-        /// ステータスを更新
-        /// </summary>
-        /// <param name="profit"></param>
-        private void UpdateStatus(decimal profit)
-        {
-            this.TotalProfit += profit;
-            this.NumberOfTrading++;
-
-            if (profit > 0)
-            {
-                this.NumberOfWins++;
-            }
-            else
-            {
-                this.NumberOfLosses++;
-            }
+            return profit;
         }
 
         /// <summary>
