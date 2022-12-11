@@ -46,16 +46,12 @@ namespace Zaku
         /// <param name="candle"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public Position JudgeCloseCondition(Candle candle, Position position)
+        public bool JudgeCloseCondition(Candle candle, Position position)
         {
             // 目標価額に達したらクローズ
-            if (candle.Close >= (position.EntryPrice * 1.05M))
-            {
-                position.CloseCondition = true;
-                position.ClosePrice = candle.Close;
-            }
-
-            return position;
+            return candle.Close >= (position.EntryPrice * 1.01M)
+                   ? true
+                   : false;
         }
     }
 }

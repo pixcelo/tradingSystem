@@ -4,6 +4,6 @@ namespace Zaku
     {
         string GetStrategyName();
         Position JudgeEntryCondition(Candle[] candles, int startIndex);
-        Position JudgeCloseCondition(Candle cande, Position position);
+        bool JudgeCloseCondition(Candle cande, Position position);
     }
 }
