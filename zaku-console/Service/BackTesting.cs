@@ -20,7 +20,7 @@ namespace Zaku
         {
             this.logger = new Logger("logs/backTesting/");
             this.dataService = new JsonService();
-            this.dataService.Path = "../jimu/candle.json";
+            this.dataService.Path = "../../jimu/candle.json";
             this.strategy = strategy;
             this.positions = new List<Position>();
             this.reportService = new ReportService();
@@ -33,47 +33,40 @@ namespace Zaku
 
         private void CheckPositions(Candle candle)
         {
-            if (positions.Count > 0)
+            foreach (var p in positions)
             {
-                foreach (var p in positions)
-                {
-                    // Judge close-position-condition
-                    Condition close = strategy.JudgeClose(candle, p);
-
-                    if (close.IsOk)
-                    {
-                        ClosePosition(close);
-                    }
-                }
+                Position position = strategy.JudgeCloseCondition(candle, p);
+                position.CloseCondition = true;
+                if (!position.CloseCondition) continue;
+                ClosePosition(position.OrderId);
             }
+            positions.RemoveAll(x => x.CloseCondition);
         }
 
         /// <summary>
-        /// Check number of positions
+        /// 保持するポジション数の範囲内かをチェック
         /// </summary>
         /// <returns></returns>
         private bool WithinPositionLimit()
         {
-            if (positionLimit == null)
-            {
-                return true;
-            }
-
-            return positionLimit >= positions.Count;
+            return positionLimit == null
+                   ? true
+                   : positionLimit >= positions.Count;
         }
 
-        private void ClosePosition(Condition condition)
+        /// <summary>
+        /// ポジションをクローズ
+        /// </summary>
+        /// <param name="OrderId"></param>
+        private void ClosePosition(string? OrderId)
         {
-            var position = positions.Where(x => x.OrderId == condition.OrderId).FirstOrDefault();
+            var position = positions
+                           .Where(x => x.OrderId == OrderId)
+                           .FirstOrDefault();
 
-            if (position == null)
-            {
-                return;
-            }
-
-            reportService.AddTradingFee(condition.ClosePrice, feeRate);
-            reportService.ComputeProfit(condition.EntryPrice, condition.ClosePrice, condition.Side);
-            positions.RemoveAll(x => x.OrderId == position.OrderId);
+            if (position == null) return;
+            position.CloseCondition = true;
+            reportService.AddClosePosition(position);
         }
 
         public void OnTick()
@@ -84,40 +77,33 @@ namespace Zaku
 
                 for (int i = 0; i < candles.Length; i++)
                 {
+                    // ポジションをチェック
                     CheckPositions(candles[i]);
+                    if (!WithinPositionLimit()) continue;
 
-                    if (!WithinPositionLimit())
-                    {
-                        continue;
-                    }
+                    // エントリー条件を判定
+                    Position entry = strategy.JudgeEntryCondition(candles, i);
+                    if (!entry.EntryCondition) continue;
 
-                    // Judge entry-order-Condition
-                    Condition entry = strategy.JudgeEntry(candles, i);
-
-                    if (!entry.IsOk)
-                    {
-                        continue;
-                    }
-
+                    // 擬似オーダー
                     var randomId = new System.Random()
-                        .Next(0,10000).ToString();
-
-                    var order = new Position()
-                    {
-                        OrderId = randomId,
-                        Symbol = "BTCUSDT",
-                        Type = OrderType.Market,
-                        Side = entry.Side,
-                        EntryPrice = candles[i].Close,
-                        SettlementPrice = null,
-                        Lots = lots,
-                        TakeProfit = null,
-                        StopLoss = null
-                    };
-
-                    reportService.AddTradingFee(order.EntryPrice, feeRate);
-                    positions.Add(order);
+                                   .Next(0,10000).ToString();
+                    entry.OrderId = randomId;
+                    entry.Symbol = "BTCUSDT";
+                    entry.Type = OrderType.Market;
+                    entry.Side = entry.Side;
+                    entry.EntryPrice = candles[i].Close;
+                    entry.ClosePrice = null;
+                    entry.Lots = lots;
+                    entry.TakeProfit = null;
+                    entry.StopLoss = null;
+                    positions.Add(entry);
                 }
+
+                Report backTestReport = reportService.GetReport();
+                string testFileName = Path.GetFileNameWithoutExtension(this.dataService.Path);
+                var es = new ExcelService(this.strategy.GetStrategyName(), testFileName);
+                es.OutputAsExcelFile(backTestReport);
             }
             catch (Exception ex)
             {
