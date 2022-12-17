@@ -17,14 +17,14 @@ namespace Zaku
         public Trade(IStrategy strategy)
         {
             this.logger = new Logger("logs/trade/");
-            this.dataService = new APIService();
+            this.dataService = new APIService(new BinanceService());
             this.strategy = strategy;
             this.positions = new List<Position>();
         }
 
-        private Candle[] GetTick()
+        private async Task<Candle[]> GetTick()
         {
-            return this.dataService.GetTick();
+            return await this.dataService.GetTick();
         }
 
         // APIを叩く
@@ -34,17 +34,14 @@ namespace Zaku
         }
 
         /// <summary>
-        /// Check number of positions
+        /// 保持するポジション数の範囲内かをチェック
         /// </summary>
         /// <returns></returns>
         private bool WithinPositionLimit()
         {
-            if (positionLimit == null)
-            {
-                return true;
-            }
-
-            return positionLimit >= positions.Count;
+            return positionLimit == null
+                   ? true
+                   : positionLimit >= positions.Count;
         }
 
         // APIを叩く
@@ -70,7 +67,7 @@ namespace Zaku
             //this.dataService.GetPositions();
         }
 
-        public void OnTick()
+        public async void OnTick()
         {
             try
             {
@@ -79,16 +76,15 @@ namespace Zaku
 
                 while(true)
                 {
-                    Candle[] candles = GetTick();
+                    Candle[] candles = await GetTick();
                     var candle = candles[0];
 
+                    // ポジションをチェック
                     CheckPositions();
-
                     if (!WithinPositionLimit()) continue;
 
-                    // Judge entry-order-Condition
-                    var entry = strategy.JudgeEntryCondition(candles, 1);
-
+                    // エントリー条件を判定
+                    Position entry = strategy.JudgeEntryCondition(candles, 1);
                     if (!entry.EntryCondition)
                     {
                         Thread.Sleep(waitingTime_MilliSeconds);
