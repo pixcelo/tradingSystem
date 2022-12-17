@@ -16,7 +16,7 @@ namespace Zaku
         /// Deserialize Json to .NET Object
         /// </summary>
         /// <returns></returns>
-        public Candle[] GetTick()
+        public async Task<Candle[]> GetTick()
         {
             if (this.candles != null)
             {
