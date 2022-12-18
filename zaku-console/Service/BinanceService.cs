@@ -108,6 +108,25 @@ namespace Zaku
         }
 
         /// <summary>
+        /// 指定したIDの注文をキャンセル
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        public async Task<bool> CancelOrder(string orderId)
+        {
+            long id = Convert.ToInt64(orderId);
+            var orderData = await exchange.UsdFuturesApi.Trading.CancelOrderAsync("BTCUSDT", id);
+            if(!orderData.Success)
+            {
+                Console.WriteLine("Request failed: " + orderData.Error);
+                return true;
+            }
+
+            Console.WriteLine($"Request success:  + order-id {orderId} canceled.");
+            return false;
+        }
+
+        /// <summary>
         /// 注文履歴のリクエスト
         /// </summary>
         /// <returns></returns>
