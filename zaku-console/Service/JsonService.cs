@@ -4,13 +4,8 @@ namespace Zaku
 {
     public class JsonService : IDataService
     {
-        public string Path { get; set; }
+        public string? Path { get; set; }
         public Candle[] candles { get; set; }
-
-        public void SetPath(string path)
-        {
-            this.Path = path;
-        }
 
         /// <summary>
         /// Deserialize Json to .NET Object
@@ -27,5 +22,9 @@ namespace Zaku
             var candleStickData = JsonSerializer.Deserialize<CandleStickData>(json);
             return ConvertService.ConvertCandleSticks(candleStickData.Candlesticks);
         }
+
+        public async Task<List<Position>> GetPositions() => new List<Position>();
+
+        public async Task<bool> PlaceOrder(Position position) => true;
     }
 }

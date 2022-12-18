@@ -2,6 +2,7 @@ using Binance.Net.Clients;
 using Binance.Net.Enums;
 using Binance.Net.Objects;
 using CryptoExchange.Net.Authentication;
+using Microsoft.Extensions.Logging;
 
 // https://jkorf.github.io/Binance.Net/
 namespace Zaku
@@ -11,8 +12,8 @@ namespace Zaku
     /// </summary>
     public class BinanceService : IDataService
     {
-        public string Path { get; set; }
-
+        public string? Path { get; set; }
+        private string Symbol { get; set; } = "BTCUSDT";
         private readonly BinanceClient exchange;
 
         public BinanceService()
@@ -20,9 +21,10 @@ namespace Zaku
             string apiKey = Settings.GetApiKey();
             string apiSecret = Settings.GetApiSecret();
 
-            exchange = new BinanceClient(new BinanceClientOptions()
+            this.exchange = new BinanceClient(new BinanceClientOptions
             {
-                ApiCredentials = new ApiCredentials(apiKey, apiSecret),
+                LogLevel = LogLevel.Debug,
+                ApiCredentials = new ApiCredentials(apiKey, apiSecret)
             });
         }
 
@@ -48,7 +50,7 @@ namespace Zaku
         // https://jkorf.github.io/Binance.Net/Examples.html#get-market-data-1
         public async Task<IEnumerable<Binance.Net.Interfaces.IBinanceRecentTrade>> GetTradeHistoryData()
         {
-            var tradeHistoryData = await exchange.UsdFuturesApi.ExchangeData.GetTradeHistoryAsync("BTCUSDT");
+            var tradeHistoryData = await this.exchange.UsdFuturesApi.ExchangeData.GetTradeHistoryAsync("BTCUSDT");
             if(!tradeHistoryData.Success)
             {
                 Console.WriteLine("Request failed: " + tradeHistoryData.Error);
@@ -94,7 +96,6 @@ namespace Zaku
                 {
                     Console.WriteLine("Request failed: " + openPositionResult.Error);
                     Console.WriteLine(Environment.NewLine + "try again Placing-Order.");
-                    //return false;
                     counter++;
                     continue;
                 }
@@ -106,8 +107,21 @@ namespace Zaku
             return false;
         }
 
-        public List<Position> GetPositions()
+        /// <summary>
+        /// 注文履歴のリクエスト
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<Position>> GetPositions()
         {
+            var ordersData = await exchange.UsdFuturesApi.Trading.GetOrdersAsync(Symbol);
+            if(!ordersData.Success)
+            {
+                Console.WriteLine("Request failed: " + ordersData.Error);
+                return new List<Position>();
+            }
+
+            var data = ordersData.Data;
+
             return new List<Position>();
         }
     }
