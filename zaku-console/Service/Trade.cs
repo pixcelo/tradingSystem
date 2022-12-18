@@ -8,7 +8,7 @@ namespace Zaku
         private List<Position> positions { get; set; }
 
         /// <summary>
-        /// Trading Settings
+        ///1 Trading Settings
         /// </summary>
         private readonly int lots = 1;
         private readonly int? positionLimit = null;
@@ -17,7 +17,8 @@ namespace Zaku
         public Trade(IStrategy strategy)
         {
             this.logger = new Logger("logs/trade/");
-            this.dataService = new APIService(new BinanceService());
+            //this.dataService = new ExchangeService(new HttpClient());
+            this.dataService = new BinanceService();
             this.strategy = strategy;
             this.positions = new List<Position>();
         }
@@ -25,12 +26,6 @@ namespace Zaku
         private async Task<Candle[]> GetTick()
         {
             return await this.dataService.GetTick();
-        }
-
-        // APIを叩く
-        private void CheckPositions()
-        {
-            //this.dataService.CloseOrder()
         }
 
         /// <summary>
@@ -44,43 +39,41 @@ namespace Zaku
                    : positionLimit >= positions.Count;
         }
 
-        // APIを叩く
-        private Position Order(Position order)
+        /// <summary>
+        /// 注文を出す
+        /// </summary>
+        /// <param name="order"></param>
+        private void Order(Position order)
         {
-            //this.dataService.PlaceOrder()
-            Console.WriteLine("place order");
-            return new Position();
+            this.dataService.PlaceOrder(order);
         }
 
-        // APIを叩く
-        private Position Cancel(Position order)
+        /// <summary>
+        /// 注文をキャンセル
+        /// </summary>
+        /// <param name="orderId"></param>
+        private async Task Cancel(string orderId)
         {
-            //this.dataService.CancelOrder()
-            Console.WriteLine("cancel order");
-            return new Position(); // remove position
-
+            bool isSuccess = await this.dataService.CancelOrder(orderId);
         }
 
-        // APIを叩く
-        public void GetPositions()
+        /// <summary>
+        /// 現在のポジションを取得
+        /// </summary>
+        public async void GetPositions()
         {
-            //this.dataService.GetPositions();
+            this.positions = await this.dataService.GetPositions();
         }
 
-        public async void OnTick()
+        public async Task<bool> OnTick()
         {
             try
             {
-                // ポジションを取得するAPI
-                // this.dataService.GetPositions();
-
                 while(true)
                 {
                     Candle[] candles = await GetTick();
-                    var candle = candles[0];
 
-                    // ポジションをチェック
-                    CheckPositions();
+                    GetPositions();
                     if (!WithinPositionLimit()) continue;
 
                     // エントリー条件を判定
@@ -94,29 +87,25 @@ namespace Zaku
                     entry.Symbol = "BTCUSDT";
                     entry.Type = OrderType.Market;
                     entry.Side = entry.Side;
-                    entry.EntryPrice = candle.Close;
+                    entry.EntryPrice = candles[0].Close;
                     entry.ClosePrice = null;
                     entry.Lots = lots;
                     entry.TakeProfit = null;
                     entry.StopLoss = null;
-
-                    // 注文が通ればポジションを追加する
-                    var newOrder = Order(entry);
-
-                    if (newOrder != null)
-                    {
-                        positions.Add(newOrder);
-                    }
+                    //Order(entry);
 
                     Thread.Sleep(waitingTime_MilliSeconds);
                     break;
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message +
                     Environment.NewLine +
                     ex.StackTrace);
+                return false;
             }
 
         }
