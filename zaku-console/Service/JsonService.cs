@@ -26,5 +26,6 @@ namespace Zaku
         public async Task<List<Position>> GetPositions() => new List<Position>();
 
         public async Task<bool> PlaceOrder(Position position) => true;
+        public async Task<bool> CancelOrder(Position position) => true;
     }
 }
