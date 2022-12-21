@@ -3,8 +3,8 @@ namespace Zaku
     public class MovingAverageStrategy : IStrategy
     {
         public readonly string StategyName = "MovingAverageStrategy";
-
         public string GetStrategyName() => this.StategyName;
+        public Position JudgeEntryCondition(Candle[] candles) => new Position();
 
         /// <summary>
         /// エントリー条件を判定
