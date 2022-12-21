@@ -3,3 +3,6 @@ obj
 
 # logs
 *.log
+
+# setting file
+Settings.cs

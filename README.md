@@ -10,5 +10,6 @@ xUnit Test project
 dotnet test
 ```
 
-## sowtware version
-.NET6.0
+## nuget
+* [EPPlus](https://www.nuget.org/packages/EPPlus/4.5.3.3)
+* [Binance.Net](https://jkorf.github.io/Binance.Net/)
