@@ -47,6 +47,22 @@ namespace Zaku
             return candles.ToArray();
         }
 
+        /// <summary>
+        /// 口座残高を取得
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Binance.Net.Objects.Models.Futures.BinanceFuturesAccountBalance>> GetBalance()
+        {
+            var balancesData = await this.exchange.UsdFuturesApi.Account.GetBalancesAsync();
+            if(!balancesData.Success)
+            {
+                Console.WriteLine("Request failed: " + balancesData.Error);
+                return new List<Binance.Net.Objects.Models.Futures.BinanceFuturesAccountBalance>();
+            }
+
+            return balancesData.Data;
+        }
+
         // https://jkorf.github.io/Binance.Net/Examples.html#get-market-data-1
         public async Task<IEnumerable<Binance.Net.Interfaces.IBinanceRecentTrade>> GetTradeHistoryData()
         {
