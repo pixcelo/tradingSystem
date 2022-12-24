@@ -35,6 +35,11 @@ namespace Zaku
             {
                 position.EntryCondition = true;
                 position.Side = OrderSide.Buy;
+                position.Type = OrderType.Market;
+                position.EntryPrice = candles[0].Close;
+                position.ClosePrice = null;
+                position.TakeProfit = null;
+                position.StopLoss = null;
             }
 
             return position;
