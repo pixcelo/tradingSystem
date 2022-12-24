@@ -2,14 +2,14 @@
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             try
             {
                 var strategy = new MovingAverageStrategy();
-                //var trade = new Trade(strategy);
-                var trade = new BackTesting(strategy);
-                trade.OnTick();
+                var trade = new Trade(strategy);
+                //var trade = new BackTesting(strategy);
+                await trade.OnTick();
             }
             catch (Exception ex)
             {
