@@ -8,8 +8,9 @@ namespace Zaku
         private List<Position> positions { get; set; }
 
         /// <summary>
-        ///1 Trading Settings
+        /// Trading Settings
         /// </summary>
+        private readonly string symbol = "BTCUSDT";
         private readonly int lots = 1;
         private readonly int? positionLimit = null;
         private readonly int waitingTime_MilliSeconds = 1000;
@@ -29,6 +30,15 @@ namespace Zaku
         }
 
         /// <summary>
+        /// 資産残高を取得
+        /// </summary>
+        /// <returns></returns>
+        private async Task GetBalance()
+        {
+            await this.dataService.GetBalance();
+        }
+
+        /// <summary>
         /// 保持するポジション数の範囲内かをチェック
         /// </summary>
         /// <returns></returns>
@@ -45,6 +55,8 @@ namespace Zaku
         /// <param name="order"></param>
         private void Order(Position order)
         {
+            order.Symbol = this.symbol;
+            order.Lots = this.lots;
             this.dataService.PlaceOrder(order);
         }
 
@@ -65,47 +77,36 @@ namespace Zaku
             this.positions = await this.dataService.GetPositions();
         }
 
-        public async Task<bool> OnTick()
+        public async Task OnTick()
         {
             try
             {
+                await GetBalance();
+
                 while(true)
                 {
                     Candle[] candles = await GetTick();
+                    Thread.Sleep(waitingTime_MilliSeconds);
 
                     GetPositions();
                     if (!WithinPositionLimit()) continue;
 
                     // エントリー条件を判定
                     Position entry = strategy.JudgeEntryCondition(candles, 1);
-                    if (!entry.EntryCondition)
-                    {
-                        Thread.Sleep(waitingTime_MilliSeconds);
-                        continue;
-                    }
+                    if (!entry.EntryCondition) continue;
 
-                    entry.Symbol = "BTCUSDT";
-                    entry.Type = OrderType.Market;
-                    entry.Side = entry.Side;
-                    entry.EntryPrice = candles[0].Close;
-                    entry.ClosePrice = null;
-                    entry.Lots = lots;
-                    entry.TakeProfit = null;
-                    entry.StopLoss = null;
-                    //Order(entry);
+                    // 売買オーダー
+                    Order(entry);
 
                     Thread.Sleep(waitingTime_MilliSeconds);
                     break;
                 }
-
-                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message +
                     Environment.NewLine +
                     ex.StackTrace);
-                return false;
             }
 
         }
