@@ -51,16 +51,21 @@ namespace Zaku
         /// 口座残高を取得
         /// </summary>
         /// <returns></returns>
-        public async Task<IEnumerable<Binance.Net.Objects.Models.Futures.BinanceFuturesAccountBalance>> GetBalance()
+        public async Task GetBalance()
         {
             var balancesData = await this.exchange.UsdFuturesApi.Account.GetBalancesAsync();
             if(!balancesData.Success)
             {
                 Console.WriteLine("Request failed: " + balancesData.Error);
-                return new List<Binance.Net.Objects.Models.Futures.BinanceFuturesAccountBalance>();
             }
 
-            return balancesData.Data;
+            var balances = balancesData.Data;
+
+            foreach (var item in balances)
+            {
+                if (item.Asset != "USDT") continue;
+                Console.WriteLine($"{item.Asset}: AvailableBalance {item.AvailableBalance}");
+            }
         }
 
         // https://jkorf.github.io/Binance.Net/Examples.html#get-market-data-1
