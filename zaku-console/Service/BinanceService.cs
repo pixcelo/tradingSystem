@@ -47,6 +47,8 @@ namespace Zaku
             });
         }
 
+
+
         public async Task<Candle[]> GetTick()
         {
             var tradeHistory = await this.GetTradeHistoryData();
