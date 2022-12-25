@@ -12,19 +12,28 @@ namespace Zaku
     /// </summary>
     public class BinanceService : IDataService
     {
+        public bool IsTestMode { get; set; } = false;
         public string? Path { get; set; }
         private string Symbol { get; set; } = "BTCUSDT";
         private readonly BinanceClient exchange;
 
         public BinanceService()
         {
+            string baseAddress = IsTestMode
+                                 ? "https://testnet.binancefuture.com"
+                                 : "https://fapi.binance.com";
+
             string apiKey = Settings.GetApiKey();
             string apiSecret = Settings.GetApiSecret();
 
             this.exchange = new BinanceClient(new BinanceClientOptions
             {
                 LogLevel = LogLevel.Debug,
-                ApiCredentials = new ApiCredentials(apiKey, apiSecret)
+                ApiCredentials = new ApiCredentials(apiKey, apiSecret),
+                UsdFuturesApiOptions = new BinanceApiClientOptions
+                {
+                    BaseAddress = baseAddress,
+                }
             });
         }
 
